@@ -1,0 +1,49 @@
+version: '3.7'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=true
+      - xpack.security.transport.ssl.enabled=false
+      - ELASTIC_PASSWORD=YourElasticPasswordHere
+      - xpack.security.http.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_om_user
+      - ELASTICSEARCH_PASSWORD=UserPasswordHere
+      - SERVER_NAME=kibana
+      - XPACK_SECURITY_ENABLED=true
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+volumes:
+  esdata1:
+    driver: local
+
+networks:
+  esnet:
+
+
+# curl -X PUT "localhost:9200/_security/role/kibkibabab" -H 'Content-Type: application/json' -d'{   "cluster": ["monitor"],   "indices": [     {       "names": [ "*" ],       "privileges": ["create_index","manage","all", "manage_leader_index"], "allow_restricted_indices": true     }   ] }' -u "elastic:YourElasticPasswordHere"
+# curl  "localhost:9200/_security/role/kibkibabab" -H 'Content-Type: application/json' -u "elastic:YourElasticPasswordHere"
+
+
+# curl -X POST "localhost:9200/_security/user/mike" -H 'Content-Type: application/json' -d'{  "password" : "Ssimbalala",  "roles" : [ "kibkibabab" ]}' -u "elastic:YourElasticPasswordHere"
